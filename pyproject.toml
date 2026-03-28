@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "runcheck"
+version = "0.1.0"
+description = "Audit a repository's runnability for new users."
+requires-python = ">=3.12"
+dependencies = [
+    "typer>=0.9",
+    "rich>=13",
+    "pydantic>=2",
+    "PyYAML>=6",
+]
+
+[project.scripts]
+runcheck = "runcheck.cli:app"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-cov",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["runcheck"]
