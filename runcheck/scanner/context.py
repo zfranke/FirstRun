@@ -25,6 +25,15 @@ class ScanContext:
         """Return a set of base filenames from all found files."""
         return {posixpath.basename(f) for f in self.files}
 
+    @property
+    def has_root_readme(self) -> bool:
+        """Return True if a README exists at the repository root."""
+        _README_NAMES = {"readme.md", "readme.rst", "readme", "readme.txt"}
+        return any(
+            "/" not in f and f.lower() in _README_NAMES
+            for f in self.files
+        )
+
 
 def build_context(repo_path: Path) -> ScanContext:
     """Build and return a :class:`ScanContext` for the given local repository path."""

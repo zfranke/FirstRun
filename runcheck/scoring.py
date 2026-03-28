@@ -57,8 +57,16 @@ def _build_positive_rubric(ctx: ScanContext, findings: list[Finding]) -> list[Sc
     readme = _readme_file(ctx)
 
     # README present (+30)
-    if "missing_readme" not in finding_rules:
+    readme_findings = [f for f in findings if f.rule_id == "missing_readme"]
+    if not readme_findings:
         rubric.append(ScoreEntry(description="README found", points=30, source=readme))
+    elif readme_findings[0].severity == Severity.WARNING:
+        # Subfolder README exists but no root README
+        rubric.append(ScoreEntry(
+            description="README found (subfolder only, no root README)",
+            points=15,
+            source=readme,
+        ))
     else:
         rubric.append(ScoreEntry(description="README not found", points=0))
 
@@ -137,8 +145,13 @@ def calculate_score(
     rubric = _build_positive_rubric(ctx, findings)
     score = sum(entry.points for entry in rubric)
 
-    # Apply penalties from findings
+    # Rules whose impact is already baked into the positive rubric
+    _RUBRIC_HANDLED = {"missing_readme", "missing_run_instructions", "missing_env_example"}
+
+    # Apply penalties from findings not already handled by the rubric
     for finding in findings:
+        if finding.rule_id in _RUBRIC_HANDLED:
+            continue
         penalty = _SEVERITY_PENALTY.get(finding.severity, 0)
         if penalty > 0:
             score -= penalty
