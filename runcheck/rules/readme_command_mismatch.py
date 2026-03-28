@@ -20,7 +20,7 @@ def check(ctx: ScanContext) -> list[Finding]:
     findings: list[Finding] = []
     cmds = _commands_text(ctx)
 
-    if _DOCKER_COMPOSE_CMD_RE.search(cmds) and not _COMPOSE_FILES.intersection(ctx.files):
+    if _DOCKER_COMPOSE_CMD_RE.search(cmds) and not _COMPOSE_FILES.intersection(ctx.basenames):
         findings.append(
             Finding(
                 rule_id="readme_command_mismatch",
@@ -30,7 +30,7 @@ def check(ctx: ScanContext) -> list[Finding]:
             )
         )
 
-    if _NPM_YARN_CMD_RE.search(cmds) and "package.json" not in ctx.files:
+    if _NPM_YARN_CMD_RE.search(cmds) and "package.json" not in ctx.basenames:
         findings.append(
             Finding(
                 rule_id="readme_command_mismatch",

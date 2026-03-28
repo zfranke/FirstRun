@@ -2,7 +2,7 @@
 
 from runcheck.detectors import (
     docker_project,
-    env_project,
+    shell_project,
     make_project,
     node_project,
     python_project,
@@ -15,7 +15,7 @@ _DETECTORS = [
     node_project,
     docker_project,
     make_project,
-    env_project,
+    shell_project,
 ]
 
 

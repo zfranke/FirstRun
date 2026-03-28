@@ -6,7 +6,7 @@ from runcheck.scanner.context import ScanContext
 
 def check(ctx: ScanContext) -> list[Finding]:
     """Return an ERROR finding if no README exists in the repository."""
-    if "README.md" not in ctx.files and "README.rst" not in ctx.files:
+    if "README.md" not in ctx.basenames and "README.rst" not in ctx.basenames:
         return [
             Finding(
                 rule_id="missing_readme",

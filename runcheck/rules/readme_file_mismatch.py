@@ -5,14 +5,28 @@ from runcheck.scanner.context import ScanContext
 
 _COMPOSE_ALIASES = {"compose.yaml", "docker-compose.yml"}
 
+# File extensions that are typically invoked as commands, not config files
+# a contributor needs to locate at the repo root.
+_COMMAND_EXTENSIONS = {".sh"}
+
+
+def _is_command_file(filename: str) -> bool:
+    """Return True if the file looks like an executable script in a shell command."""
+    return any(filename.endswith(ext) for ext in _COMMAND_EXTENSIONS)
+
 
 def check(ctx: ScanContext) -> list[Finding]:
     """Warn about files the README mentions that are not present in the repo."""
     findings: list[Finding] = []
-    files_set = set(ctx.files)
+    files_set = ctx.basenames
 
     for ref in ctx.readme_data.get("referenced_files", []):
         if ref in files_set:
+            continue
+
+        # Skip .sh files — they may live in subdirectories or be
+        # downloaded/created by the install process.
+        if _is_command_file(ref):
             continue
 
         # Special case: docker-compose.yml ↔ compose.yaml aliasing

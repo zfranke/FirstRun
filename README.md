@@ -5,14 +5,31 @@ contributor to clone the project and actually run it.
 
 It scans the repository for well-known files, parses the README, detects the
 likely run method(s), and produces a confidence score with actionable findings.
+Works on **local paths** and **GitHub URLs**.
 
 ---
 
 ## Installation
 
+> **Requires Python 3.12+.** If `python` is not on your PATH, use `py -3` on Windows.
+
 ```bash
+# Clone the repo
+git clone https://github.com/zfranke/FirstRun.git
+cd FirstRun
+
+# Install (adds the `runcheck` command to your environment)
 pip install -e .
 ```
+
+> **Note:** After install, `runcheck` is placed in your Python Scripts folder.
+> If it isn't on your PATH run it via `python -m runcheck` instead, or add
+> the Scripts directory to PATH.
+>
+> On Windows with the `py` launcher you can always use:
+> ```
+> py -3 -m runcheck <target>
+> ```
 
 For development (includes `pytest`):
 
@@ -24,19 +41,47 @@ pip install -e ".[dev]"
 
 ## Usage
 
+### Scan a local repository
+
 ```bash
-# Basic audit of the current directory
+# Audit the current directory
 runcheck .
 
 # Audit a specific path
 runcheck /path/to/repo
 
-# Machine-readable JSON output
-runcheck . --json
+# Or if runcheck isn't on your PATH:
+py -3 -m runcheck .
+```
 
-# Verbose output (show all details)
+### Scan a GitHub repository (no clone needed)
+
+```bash
+runcheck https://github.com/owner/repo
+```
+
+Set `GITHUB_TOKEN` to avoid GitHub API rate limits (60 req/hr unauthenticated → 5 000 req/hr authenticated):
+
+```bash
+# Windows
+set GITHUB_TOKEN=ghp_yourtoken
+runcheck https://github.com/owner/repo
+
+# macOS / Linux
+export GITHUB_TOKEN=ghp_yourtoken
+runcheck https://github.com/owner/repo
+```
+
+### Output options
+
+```bash
+# Verbose: show file list and finding details
 runcheck . --verbose
 runcheck . -v
+
+# Machine-readable JSON (useful in CI)
+runcheck . --json
+runcheck https://github.com/owner/repo --json
 ```
 
 ---

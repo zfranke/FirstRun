@@ -2,8 +2,10 @@
 
 from runcheck.models import Finding
 from runcheck.rules import (
+    container_available,
     missing_env_example,
     missing_readme,
+    missing_run_instructions,
     missing_start_method,
     readme_command_mismatch,
     readme_file_mismatch,
@@ -14,8 +16,10 @@ _RULES = [
     missing_readme,
     missing_start_method,
     missing_env_example,
+    missing_run_instructions,
     readme_file_mismatch,
     readme_command_mismatch,
+    container_available,
 ]
 
 

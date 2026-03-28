@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from runcheck.models import RunMethod, Severity
+from runcheck.models import ReadmeData, RunMethod, Severity
 from runcheck.scanner.context import ScanContext
 from runcheck.rules import missing_readme, missing_start_method, missing_env_example
 from runcheck.rules import readme_file_mismatch
@@ -18,14 +18,14 @@ from runcheck.rules import readme_file_mismatch
 def _ctx(
     files: list[str] | None = None,
     run_methods: list[RunMethod] | None = None,
-    readme_data: dict | None = None,
-    repo_path: Path | None = None,
+    readme_data: ReadmeData | None = None,
+    repo_path: str = ".",
 ) -> ScanContext:
     return ScanContext(
-        repo_path=repo_path or Path("."),
+        repo_path=repo_path,
         files=files or [],
         readme_data=readme_data
-        or {"code_blocks": [], "shell_commands": [], "referenced_files": []},
+        or ReadmeData(code_blocks=[], shell_commands=[], referenced_files=[]),
         run_methods=run_methods or [],
     )
 
@@ -83,11 +83,11 @@ def test_readme_file_mismatch() -> None:
     """A WARNING is produced when the README references a file not in ctx.files."""
     ctx = _ctx(
         files=["README.md"],
-        readme_data={
-            "code_blocks": [],
-            "shell_commands": [],
-            "referenced_files": ["requirements.txt"],
-        },
+        readme_data=ReadmeData(
+            code_blocks=[],
+            shell_commands=[],
+            referenced_files=["requirements.txt"],
+        ),
     )
     findings = readme_file_mismatch.check(ctx)
     assert len(findings) == 1
@@ -99,11 +99,11 @@ def test_readme_file_mismatch_no_issue() -> None:
     """No finding when all referenced files actually exist."""
     ctx = _ctx(
         files=["README.md", "requirements.txt"],
-        readme_data={
-            "code_blocks": [],
-            "shell_commands": [],
-            "referenced_files": ["requirements.txt"],
-        },
+        readme_data=ReadmeData(
+            code_blocks=[],
+            shell_commands=[],
+            referenced_files=["requirements.txt"],
+        ),
     )
     findings = readme_file_mismatch.check(ctx)
     assert findings == []
@@ -113,11 +113,11 @@ def test_readme_file_mismatch_compose_alias() -> None:
     """Compose alias mismatch produces a specific WARNING (not generic missing)."""
     ctx = _ctx(
         files=["README.md", "compose.yaml"],
-        readme_data={
-            "code_blocks": [],
-            "shell_commands": [],
-            "referenced_files": ["docker-compose.yml"],
-        },
+        readme_data=ReadmeData(
+            code_blocks=[],
+            shell_commands=[],
+            referenced_files=["docker-compose.yml"],
+        ),
     )
     findings = readme_file_mismatch.check(ctx)
     assert len(findings) == 1
@@ -133,11 +133,11 @@ def test_missing_env_example_detected() -> None:
     """A WARNING is produced when .env is referenced but no example exists."""
     ctx = _ctx(
         files=["README.md"],
-        readme_data={
-            "code_blocks": [],
-            "shell_commands": [],
-            "referenced_files": [".env"],
-        },
+        readme_data=ReadmeData(
+            code_blocks=[],
+            shell_commands=[],
+            referenced_files=[".env"],
+        ),
     )
     findings = missing_env_example.check(ctx)
     assert len(findings) == 1
@@ -149,18 +149,33 @@ def test_missing_env_example_present() -> None:
     """No WARNING when .env.example is already present."""
     ctx = _ctx(
         files=["README.md", ".env.example"],
-        readme_data={
-            "code_blocks": [],
-            "shell_commands": [],
-            "referenced_files": [".env"],
-        },
+        readme_data=ReadmeData(
+            code_blocks=[],
+            shell_commands=[],
+            referenced_files=[".env"],
+        ),
     )
     findings = missing_env_example.check(ctx)
     assert findings == []
 
 
-def test_missing_env_example_docker_triggers_warning() -> None:
-    """A Dockerfile without .env.example triggers a WARNING."""
+def test_missing_env_example_docker_without_env_ref_is_silent() -> None:
+    """A Dockerfile alone (no .env reference) should NOT trigger a WARNING."""
     ctx = _ctx(files=["README.md", "Dockerfile"])
     findings = missing_env_example.check(ctx)
-    assert any(f.rule_id == "missing_env_example" for f in findings)
+    assert findings == []
+
+
+def test_missing_env_example_env_in_shell_command() -> None:
+    """A shell command referencing .env triggers a WARNING when no example exists."""
+    ctx = _ctx(
+        files=["README.md", "Dockerfile"],
+        readme_data=ReadmeData(
+            code_blocks=["cp .env.example .env"],
+            shell_commands=["cp .env.example .env"],
+            referenced_files=[],
+        ),
+    )
+    findings = missing_env_example.check(ctx)
+    assert len(findings) == 1
+    assert findings[0].rule_id == "missing_env_example"

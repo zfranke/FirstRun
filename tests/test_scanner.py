@@ -59,7 +59,7 @@ def test_parse_readme_empty(tmp_path: Path) -> None:
 def test_parse_readme_missing(tmp_path: Path) -> None:
     """parse_readme when no README exists returns empty data."""
     result = parse_readme(tmp_path)
-    assert result == {"code_blocks": [], "shell_commands": [], "referenced_files": []}
+    assert result == {"code_blocks": [], "shell_commands": [], "referenced_files": [], "docs_links": []}
 
 
 # ---------------------------------------------------------------------------
@@ -149,7 +149,7 @@ def test_build_context(tmp_path: Path) -> None:
     (tmp_path / "requirements.txt").write_text("requests\n")
 
     ctx = build_context(tmp_path)
-    assert ctx.repo_path == tmp_path
+    assert ctx.repo_path == str(tmp_path)
     assert "README.md" in ctx.files
     assert "requirements.txt" in ctx.files
     assert ctx.run_methods == []  # not yet populated

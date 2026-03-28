@@ -51,6 +51,35 @@ def print_report(result: ScanResult, verbose: bool = False) -> None:
     # Summary
     _CONSOLE.print(f"\n[italic]{result.summary}[/italic]\n")
 
+    # Container info
+    if result.container_info:
+        _CONSOLE.print(Panel(
+            f"[bold]🐳 {result.container_info}[/bold]",
+            title="Containerisation",
+            border_style="blue",
+            expand=False,
+        ))
+        _CONSOLE.print()
+
+    # Scoring rubric
+    rubric_table = Table(title="Score Rubric", box=box.SIMPLE, show_lines=False)
+    rubric_table.add_column("Item", style="dim")
+    rubric_table.add_column("Source", style="cyan", max_width=30, no_wrap=False)
+    rubric_table.add_column("Points", justify="right", width=8)
+    for entry in result.rubric:
+        pts = f"+{entry.points}" if entry.points > 0 else str(entry.points)
+        style = "green" if entry.points > 0 else ("red" if entry.points < -10 else "yellow")
+        rubric_table.add_row(entry.description, entry.source, Text(pts, style=style))
+    rubric_table.add_section()
+    total_style = _score_color(result.confidence_score)
+    rubric_table.add_row(
+        Text("Total", style="bold"),
+        "",
+        Text(str(result.confidence_score), style=total_style),
+    )
+    _CONSOLE.print(rubric_table)
+    _CONSOLE.print()
+
     # Findings table
     if result.findings:
         table = Table(title="Findings", box=box.ROUNDED, show_lines=True)
