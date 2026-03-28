@@ -1,4 +1,8 @@
-"""Detector: shell-script entry points (start.sh / run.sh)."""
+"""Detector: shell-script entry points (start.sh / run.sh).
+
+Despite the filename, this module detects shell-script-based run methods
+(start.sh / run.sh), not environment-variable configuration.
+"""
 
 from runcheck.models import RunMethod
 from runcheck.scanner.context import ScanContext

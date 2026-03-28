@@ -14,8 +14,10 @@ _SHELL_LINE_RE = re.compile(
 )
 
 # Referenced filenames in prose or code.
-# Uses (?<!\w) to avoid mid-word matches. Uses (?!\w) so trailing sentence
-# punctuation (e.g. "see compose.yaml.") does not suppress the match.
+# Uses (?<!\w) to avoid mid-word matches on the left side.
+# Uses (?!\w) on the right side so that trailing sentence punctuation
+# (e.g. a period in "see compose.yaml.") is not treated as part of the
+# filename and does not suppress the match.
 _FILE_REF_RE = re.compile(
     r"(?<!\w)"
     r"(\.env[\w.]*"
